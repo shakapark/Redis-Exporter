@@ -1,10 +1,11 @@
 package main
 
 import (
-//	"fmt"
 	"net/http"
 	"time"
-
+	"os"
+	"os/signal"
+	"syscall"
 	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,21 +25,17 @@ var (
 		Help: "Errors in requests to the Redis-Exporter",
 	})
 
-	sc = &SafeConfig{
-		C: &config.Config{},
-	}
-	reloadCh chan chan error
+	test = prometheus.NewGauge(prometheus.GaugeOpts{
+                Name: "test",
+                Help: "test",
+	})
 )
-
-type SafeConfig struct {
-	sync.RWMutex
-	C *config.Config
-}
 
 func init() {
 	prometheus.MustRegister(redisDuration)
 	prometheus.MustRegister(redisRequestErrors)
 	prometheus.MustRegister(version.NewCollector("redis_exporter"))
+	prometheus.MustRegister(test)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -49,38 +46,42 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		redisRequestErrors.Inc()
 		return
 	}
-
+/*
 	moduleName := r.URL.Query().Get("module")
 	if moduleName == "" {
 		moduleName = "default"
 	}
-
-	sc.RLock()
-	module, ok := (*(sc.C))[moduleName]
-	sc.RUnlock()
-	if !ok {
-		http.Error(w, fmt.Sprintf("Unkown module '%s'", moduleName), 400)
-		redisRequestErrors.Inc()
-		return
-	}
-	log.Debugf("Scraping target '%s' with module '%s'", target, moduleName)
+*/
+	log.Debugf("Scraping target '%s' with module '%s'", target)
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-//	collector := collector{target: target, module: module}
-//	registry.MustRegister(collector)
+	test.Set(2)//collector(target)
+	registry.MustRegister(test)
 
 	// Delegate http serving to Promethues client library, which will call collector.Collect.
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	h.ServeHTTP(w, r)
 	duration := float64(time.Since(start).Seconds())
-	redisDuration.WithLabelValues(moduleName).Observe(duration)
-	log.Debugf("Scrape of target '%s' with module '%s' took %f seconds", target, moduleName, duration)
+	log.Debugf("Scrape of target '%s' with module '%s' took %f seconds", target, duration)
 }
-
-
-
+/*
+func collector(t string) float64 {
+	return 2
+}
+*/
 func main() {
+	log.AddFlags(kingpin.CommandLine)
+	kingpin.Version(version.Print("redis_exporter"))
+	kingpin.HelpFlag.Short('h')
+	kingpin.Parse()
+
+	log.Infoln("Starting redis exporter", version.Info())
+	log.Infoln("Build context", version.BuildContext())
+
+	hup := make(chan os.Signal)
+	signal.Notify(hup, syscall.SIGHUP)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
             <head>
@@ -102,15 +103,14 @@ func main() {
             <h1>Redis-Exporter</h1>
             <form action="/redis">
             <label>Target:</label> <input type="text" name="target" placeholder="X.X.X.X" value="1.2.3.4"><br>
-            <label>Module:</label> <input type="text" name="module" placeholder="module" value="default"><br>
+            <label>Module:</label> <input type="text" name="module" placeholder="module" value="Table Name"><br>
             <input type="submit" value="Submit">
             </form>
-            <p><a href="/metrics">Metrics</a></p>
             </body>
             </html>`))
 	})
 
-	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/redis", handler)
+	log.Infof("Listening on 9200")
 	log.Fatal(http.ListenAndServe(":9200", nil))
 }
