@@ -46,18 +46,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		redisRequestErrors.Inc()
 		return
 	}
-/*
-	moduleName := r.URL.Query().Get("module")
-	if moduleName == "" {
-		moduleName = "default"
+
+	object := r.URL.Query().Get("object")
+	if object == "" {
+		http.Error(w, "'object' parameter must be specified", 400)
+		redisRequestErrors.Inc()
+		return
 	}
-*/
-	log.Debugf("Scraping target '%s' with module '%s'", target)
+
+	log.Debugf("Scraping target '%s' with object '%s'", target, object)
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-	test.Set(2)//collector(target)
-	registry.MustRegister(test)
+	//test.Set(2)//collector(target)
+	collector := collector{target: target, object: object}
+	//registry.MustRegister(test)
+	registry.MustRegister(collector)
 
 	// Delegate http serving to Promethues client library, which will call collector.Collect.
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
@@ -65,14 +69,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	duration := float64(time.Since(start).Seconds())
 	log.Debugf("Scrape of target '%s' with module '%s' took %f seconds", target, duration)
 }
-/*
-func collector(t string) float64 {
-	return 2
-}
-*/
+
 func main() {
 	log.AddFlags(kingpin.CommandLine)
-	kingpin.Version(version.Print("redis_exporter"))
+	kingpin.Version(version.Print("Redis_Exporter : Beta"))
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 
@@ -103,7 +103,7 @@ func main() {
             <h1>Redis-Exporter</h1>
             <form action="/redis">
             <label>Target:</label> <input type="text" name="target" placeholder="X.X.X.X" value="1.2.3.4"><br>
-            <label>Module:</label> <input type="text" name="module" placeholder="module" value="Table Name"><br>
+            <label>Object:</label> <input type="text" name="object" placeholder="object" value="Object Name"><br>
             <input type="submit" value="Submit">
             </form>
             </body>
