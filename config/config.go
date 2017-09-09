@@ -1,16 +1,16 @@
 package config
 
 import (
-	"errors"
+	#"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
 	"sync"
-	"time"
+	#"time"
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/prometheus/common/config"
+	#"github.com/prometheus/common/config"
 )
 
 type Config struct {
@@ -72,7 +72,7 @@ func (s *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (s *Object) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type plain Module
+	type plain Object
 	if err := unmarshal((*plain)(s)); err != nil {
 		return err
 	}
