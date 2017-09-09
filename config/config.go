@@ -47,6 +47,8 @@ func (sc *SafeConfig) ReloadConfig(confFile string) (err error) {
 type Object struct {
 	Name string `yaml:"name,omitempty"`
 	Type string `yaml:"type,omitempty"`
+
+	XXX map[string]interface{} `yaml:",inline"`
 }
 
 func checkOverflow(m map[string]interface{}, ctx string) error {
