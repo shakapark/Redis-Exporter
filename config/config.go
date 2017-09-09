@@ -1,16 +1,16 @@
 package config
 
 import (
-	#"errors"
+	//"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
 	"sync"
-	#"time"
+	//"time"
 
 	yaml "gopkg.in/yaml.v2"
 
-	#"github.com/prometheus/common/config"
+	//"github.com/prometheus/common/config"
 )
 
 type Config struct {
