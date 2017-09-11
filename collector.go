@@ -15,12 +15,16 @@ var (
 
 )
 
-func Convert(a []uint8) string{
+func StringConvert(a []uint8) string{
 	b := make([]byte, 0, len(a))
 	for _, i := range a {
 		b = append(b, byte(i))
 	}
 	return string(b)
+}
+
+func NombreConvert(a []uint8) float64{
+	return float64(a)
 }
 
 type collector struct {
@@ -48,9 +52,13 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 	}
 
 	//Suite à modifier suivant object.Type
-
-	result := Convert(r.([]uint8))
-	log.Infof("Result : %v", result)
+	switch c.object.Type {
+		case "nombre":
+			result := NombreConvert(r.([]uint8))
+		case "text":
+			result := StringConvert(r.([]uint8))
+		default:
+	}
 
 	defer conn.Close()
 
