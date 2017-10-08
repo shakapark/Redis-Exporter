@@ -173,7 +173,7 @@ func main() {
 		sc.Unlock()
 		handler(w, r, conf)
 	})
-	log.Infof("Listening on ", *listenAddress)
+	log.Infof("Listening on %s", *listenAddress)
 	if err := http.ListenAndServe(*listenAddress, nil); err != nil {
 		log.Fatalf("Error starting HTTP server: %s", err)
 	}
