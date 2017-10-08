@@ -1,7 +1,8 @@
 package main
 
 import(
-	//"fmt"
+	"encoding/json"
+	"http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -15,7 +16,7 @@ var (
 
 )
 
-func StringConvert(a []uint8) string{
+func StringConverter(a []uint8) string{
 	b := make([]byte, 0, len(a))
 	for _, i := range a {
 		b = append(b, byte(i))
@@ -23,13 +24,42 @@ func StringConvert(a []uint8) string{
 	return string(b)
 }
 
-func NombreConvert(a []uint8) float64{
-	return float64(a)
+// Function to copy for more json Type and change x value
+func jsonxConverter(s string) {
+
+	type Json struct {
+		// Structur : get help to https://mholt.github.io/json-to-go/ Try to not have interface{} type
+	}
+	
+	var data Json
+	if err := json.Unmarshal(s, &data); err != nil {
+		log.Infof("err", err)
+		ch <- prometheus.NewInvalidMetric(prometheus.NewDesc("redis_error", "Error scraping target", nil, nil), err)
+		return
+	}
+	
+	// Now put all values you want to export in the tab
+	tab : make(map[string]float64)
+	
+	tab["label1"] = data.label1
+	tab["label2"] = float64(data.label.label2) // Use float64(...) If value has not good type
+	[...]
+	
+	for k, v := range tab {
+	
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc("redis_get_"+c.object.Name, "Result to Redis GET.", []string{"label"}, nil),
+			prometheus.GaugeValue,
+			v, k)	
+	}
+
 }
+// Function to copy for more json Type and change x value
 
 type collector struct {
 	target string
 	object config.Object
+	passwd string
 }
 
 func (c collector) Describe(ch chan<- *prometheus.Desc) {
@@ -39,7 +69,7 @@ func (c collector) Describe(ch chan<- *prometheus.Desc) {
 func (c collector) Collect(ch chan<- prometheus.Metric){
 	start := time.Now()
 
-	conn, err := redis.Dial("tcp", c.target)
+	conn, err := redis.Dial("tcp", c.target, redis.DialPassword(c.passwd))
 	if err != nil {
 		log.Infof("Error scraping target %s: %s", c.target, err)
 		ch <- prometheus.NewInvalidMetric(prometheus.NewDesc("redis_error", "Error scraping target", nil, nil), err)
@@ -51,13 +81,28 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 		log.Infof("Result : %s", err)
 	}
 
-	//Suite à modifier suivant object.Type
 	switch c.object.Type {
 		case "nombre":
-			result := NombreConvert(r.([]uint8))
+			result := r.(int)
+			ch <- prometheus.MustNewConstMetric(
+				prometheus.NewDesc("redis_get_"+c.object.Name, "Redis Get result", nil, nil),
+				prometheus.GaugeValue,
+				float64(result))
 		case "text":
-			result := StringConvert(r.([]uint8))
+			result := StringConverter(r.([]uint8))
+			ch <- prometheus.MustNewConstMetric(
+				prometheus.NewDesc("redis_get_"+c.object.Name, "Total REDIS time scrape took.", nil, prometheus.Labels{"result":result}),
+				prometheus.GaugeValue,
+				1,
+				result)
+		
+		// Modul to copy for more json Type and change x value
+		case "jsonx":
+			jsonxConverter(StringConverter(r.([]uint8)))
+		// Modul to copy for more json Type and change x value
+			
 		default:
+			http.Error(w, fmt.Sprintf("Unknown type %s", c.object.Type), 400
 	}
 
 	defer conn.Close()

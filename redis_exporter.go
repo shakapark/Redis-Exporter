@@ -28,10 +28,12 @@ var (
 		Help: "Errors in requests to the Redis-Exporter",
 	})
 
+	passwd = kingpin.Flag("password","Password to Redis Database").Default("").String()
+
 	sc = &config.SafeConfig{C: &config.Config{},}
 
 	configFile = kingpin.Flag("config.file", "Redis exporter configuration file.").Default("redis.yml").String()
-	listenAddress = kingpin.Flag("web.listen-address", "The address to listen on for HTTP requests.").Default(":9200").String()
+	listenAddress = kingpin.Flag("web.listen-address", "The address to listen on for HTTP requests.").Default(":9140").String()
 )
 
 func init() {
@@ -66,7 +68,7 @@ func handler(w http.ResponseWriter, r *http.Request, c *config.Config) {
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-	collector := collector{target: target, object: object}
+	collector := collector{target: target, object: object, passwd: *passwd}
 	registry.MustRegister(collector)
 
 	// Delegate http serving to Promethues client library, which will call collector.Collect.
@@ -139,6 +141,10 @@ func main() {
 					<label>Target:</label> <input type="text" name="target" placeholder="X.X.X.X" value="1.2.3.4"><br>
 					<label>Object:</label> <input type="text" name="object" placeholder="object" value="Object Name"><br>
 					<input type="submit" value="Submit">
+				</form>
+				<br><br><br>
+				<form action="/-/reload" method="POST">
+					<input type="submit" value="reload">
 				</form>
 			</body>
 		</html>`))
