@@ -90,7 +90,7 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 		case "text":
 			result := StringConverter(r.([]uint8))
 			ch <- prometheus.MustNewConstMetric(
-				prometheus.NewDesc("redis_get_"+c.object.Name, "Total REDIS time scrape took.", nil, prometheus.Labels{"result":result}),
+				prometheus.NewDesc("redis_get_"+c.object.Name, "Total REDIS time scrape took.", []string{"result"}, nil),
 				prometheus.GaugeValue,
 				1,
 				result)
