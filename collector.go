@@ -2,7 +2,7 @@ package main
 
 import(
 	"encoding/json"
-	"http"
+	"net/http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
