@@ -2,7 +2,6 @@ package main
 
 import(
 	"encoding/json"
-	"net/http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -102,7 +101,7 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 		// Modul to copy for more json Type and change x value
 			
 		default:
-			http.Error(w, fmt.Sprintf("Unknown type %s", c.object.Type), 400
+			ch <- prometheus.NewInvalidMetric(prometheus.NewDesc("redis_error", "Unknown Type", nil, nil), nil)
 	}
 
 	defer conn.Close()
