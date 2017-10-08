@@ -1,7 +1,8 @@
 package main
 
 import(
-	"encoding/json"
+	//"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -23,6 +24,7 @@ func StringConverter(a []uint8) string{
 	return string(b)
 }
 
+/*
 // Function to copy for more json Type and change x value
 func jsonxConverter(s string) {
 
@@ -54,7 +56,7 @@ func jsonxConverter(s string) {
 
 }
 // Function to copy for more json Type and change x value
-
+*/
 type collector struct {
 	target string
 	object config.Object
@@ -82,11 +84,16 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 
 	switch c.object.Type {
 		case "nombre":
-			result := r.(int)
-			ch <- prometheus.MustNewConstMetric(
-				prometheus.NewDesc("redis_get_"+c.object.Name, "Redis Get result", nil, nil),
-				prometheus.GaugeValue,
-				float64(result))
+			rTemp := StringConverter(r.([]uint8))
+			result , err := strconv.ParseFloat(rTemp, 64)
+			if err == nil {
+				ch <- prometheus.MustNewConstMetric(
+					prometheus.NewDesc("redis_get_"+c.object.Name, "Redis Get result", nil, nil),
+					prometheus.GaugeValue,
+					result)
+			}else{
+				ch <- prometheus.NewInvalidMetric(prometheus.NewDesc("redis_error", "Error Convert Object", nil, nil), err)
+			}
 		case "text":
 			result := StringConverter(r.([]uint8))
 			ch <- prometheus.MustNewConstMetric(
@@ -96,8 +103,8 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 				result)
 		
 		// Modul to copy for more json Type and change x value
-		case "jsonx":
-			jsonxConverter(StringConverter(r.([]uint8)))
+//		case "jsonx":
+//			jsonxConverter(StringConverter(r.([]uint8)))
 		// Modul to copy for more json Type and change x value
 			
 		default:
