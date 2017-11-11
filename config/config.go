@@ -14,7 +14,7 @@ import (
 )
 
 type Config struct {
-	Objects map[string]Object `yaml:"object"`
+	Objects []Object `yaml:"object"`
 
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]interface{} `yaml:",inline"`
@@ -45,8 +45,8 @@ func (sc *SafeConfig) ReloadConfig(confFile string) (err error) {
 }
 
 type Object struct {
-	Name string `yaml:"name,omitempty"`
-	Type string `yaml:"type,omitempty"`
+	Name string `yaml:"name,"`
+	Type string `yaml:"type,"`
 
 	XXX map[string]interface{} `yaml:",inline"`
 }
