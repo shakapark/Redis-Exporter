@@ -1,10 +1,12 @@
-FROM quay.io/prometheus/busybox:glibc
+FROM golang:1.8
 
-COPY redis_exporter /bin/redis_exporter
+COPY . .
+
+RUN go-wrapper download
+
+RUN go-wrapper install
 
 EXPOSE 9140
 
-USER nobody
-
-ENTRYPOINT ["/bin/redis_exporter"]
+CMD ["go-wrapper", "run"]
 

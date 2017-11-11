@@ -26,21 +26,21 @@ func StringConverter(a []uint8) string{
 
 /*
 // Function to copy for more json Type and change x value
-func jsonxConverter(s string) {
+func jsonxConverter(s string, ch chan<- prometheus.Metric, c collector) {
 
 	type Json struct {
 		// Structur : get help to https://mholt.github.io/json-to-go/ Try to not have interface{} type
 	}
 	
 	var data Json
-	if err := json.Unmarshal(s, &data); err != nil {
+	if err := json.Unmarshal([]byte(s), &data); err != nil {
 		log.Infof("err", err)
 		ch <- prometheus.NewInvalidMetric(prometheus.NewDesc("redis_error", "Error scraping target", nil, nil), err)
 		return
 	}
 	
 	// Now put all values you want to export in the tab
-	tab : make(map[string]float64)
+	tab := make(map[string]float64)
 	
 	tab["label1"] = data.label1
 	tab["label2"] = float64(data.label.label2) // Use float64(...) If value has not good type
@@ -104,7 +104,7 @@ func (c collector) Collect(ch chan<- prometheus.Metric){
 		
 		// Modul to copy for more json Type and change x value
 //		case "jsonx":
-//			jsonxConverter(StringConverter(r.([]uint8)))
+//			jsonxConverter(StringConverter(r.([]uint8)), ch, c)
 		// Modul to copy for more json Type and change x value
 			
 		default:

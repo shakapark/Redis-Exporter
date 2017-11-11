@@ -1,9 +1,7 @@
 object:
-  ObjectName:
-    type: nombre
-
-  ObjectName:
-    type: text
-
-  ObjectName:
-    type: json
+- name: ObjectName
+  type: nombre
+- name: ObjectName
+  type: text
+- name: ObjectName
+  type: jsonx

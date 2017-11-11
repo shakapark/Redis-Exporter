@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -36,6 +37,16 @@ var (
 	listenAddress = kingpin.Flag("web.listen-address", "The address to listen on for HTTP requests.").Default(":9140").String()
 )
 
+func getObject(name string, c *config.Config) (config.Object, error) {
+	
+	for _, o := range c.Objects {
+		if o.Name == name {
+			return o, nil
+		}
+	}
+	return config.Object{}, errors.New("Unknown object " + name)
+}
+
 func init() {
 	prometheus.MustRegister(redisDuration)
 	prometheus.MustRegister(redisRequestErrors)
@@ -57,10 +68,10 @@ func handler(w http.ResponseWriter, r *http.Request, c *config.Config) {
 		redisRequestErrors.Inc()
 		return
 	}
-
-	object, ok := c.Objects[objectName]
-	if !ok {
-		http.Error(w, fmt.Sprintf("Unknown object %q", objectName), 400)
+	
+	object, err := getObject(objectName, c)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
 		return
 	}
 
