@@ -45,8 +45,8 @@ func (sc *SafeConfig) ReloadConfig(confFile string) (err error) {
 }
 
 type Object struct {
-	Name string `yaml:"name,"`
-	Type string `yaml:"type,"`
+	Name string `yaml:"name"`
+	Type string `yaml:"type"`
 
 	XXX map[string]interface{} `yaml:",inline"`
 }
