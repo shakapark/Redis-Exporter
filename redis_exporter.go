@@ -80,7 +80,7 @@ func handler(w http.ResponseWriter, r *http.Request, c *config.Config) {
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-	collector := collector{target: target, object: object, passwd: *passwd}
+	collector := collector{target: target, object: object, passwd: passwd}
 	registry.MustRegister(collector)
 
 	// Delegate http serving to Promethues client library, which will call collector.Collect.
