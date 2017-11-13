@@ -29,8 +29,9 @@ var (
 		Help: "Errors in requests to the Redis-Exporter",
 	})
 
-	passwd = kingpin.Flag("password","Password to Redis Database").Default("").String()
-
+	//passwd = kingpin.Flag("password","Password to Redis Database").Default("").String()
+	passwd = os.Getenv("PASSWD")
+	
 	sc = &config.SafeConfig{C: &config.Config{},}
 
 	configFile = kingpin.Flag("config.file", "Redis exporter configuration file.").Default("redis.yml").String()
